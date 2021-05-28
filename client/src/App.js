@@ -11,10 +11,9 @@ import AssignmentIcon from "@material-ui/icons/Assignment"
 import PhoneIcon from "@material-ui/icons/Phone"
 
 
+const socket = io.connect();
 
-export default function App() {
-
-  const socket = io.connect("http://localhost:5000");
+export default function Home() {
 
   const [ me, setMe ] = useState("")
 	const [ stream, setStream ] = useState()
@@ -30,7 +29,7 @@ export default function App() {
 	const connectionRef= useRef()
 
   useEffect(() => {
- 
+
 		navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
 			setStream(stream)
 				myVideo.current.srcObject = stream
