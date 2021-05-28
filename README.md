@@ -24,7 +24,7 @@ npm run client
 ```
 
 ### Author
-
+Ezenagu Emmanuel .S
 ### Version
 
 1.0.0

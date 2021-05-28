@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
 
 });
 
-// --> Add this
+// --> Enables deployment of application to heroku platform
 if (process.env.NODE_ENV === 'production') {
   // Serve any static files
   app.use(express.static(path.join(__dirname, 'client/build')));
