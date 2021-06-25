@@ -36,7 +36,7 @@ export default function Signin() {
               }) );
                setAuthentication(false);
         })
-
+       
         // Listnening for connection error event
         socket.on("connect_error", (err) => {
             if (err.message === "invalid username") {

@@ -15,17 +15,16 @@ export default function Video(props) {
 
  	const [stream, setStream] = useState()
 	const [receivingCall, setReceivingCall] = useState(false)
-	const [caller, setCaller] = useState("")
+	const [callersocketID, setCallerSocketID] = useState("")
+	const [callerName, setCallerName] = useState("")
 	const [callerSignal, setCallerSignal] = useState()
 	const [callAccepted, setCallAccepted] = useState(false)
-	const [idToCall, setIdToCall] = useState("")
 	const [callEnded, setCallEnded] = useState(false)
-	const [name, setName] = useState("")
-	const myVideo = useRef()
+ 	const myVideo = useRef()
 	const userVideo = useRef()
 	const connectionRef = useRef()
 
-	const { users,  userID, socketID, updateUsers, updateName, updateUserID, updateSocketID } = useContext(SocketIDContext);
+	const { users, name, userID, socketID, updateUsers, updateName, updateUserID, updateSocketID } = useContext(SocketIDContext);
 
 
 	useEffect(() => {
@@ -35,12 +34,16 @@ export default function Video(props) {
 		})
 
 		socket.on("callUser", (data) => {
-			setReceivingCall(true)
-			setCaller(data.from)
-			setName(data.name)
+			setReceivingCall(true);
+			setCallerSocketID(data.from)
+			setCallerName(data.name)
 			setCallerSignal(data.signal)
 		})
-	}, [])
+		socket.on("callEnded", (data) => {
+			 setCallAccepted(false);
+			 console.log(users);
+ 		})
+	}, []) 
 
 	const callUser = (id) => {
 		console.log(id);
@@ -50,21 +53,23 @@ export default function Video(props) {
 			stream: stream
 		})
 		peer.on("signal", (data) => {
+			console.log(name);
+			console.log(socket.id);
 			socket.emit("callUser", {
 				userToCall: id,
 				signalData: data,
-				from: socketID,
+				from: socket.id,
 				name: name
 			})
 		})
 		peer.on("stream", (stream) => {
 			userVideo.current.srcObject = stream
 		})
+
 		socket.on("callAccepted", (signal) => {
 			setCallAccepted(true)
 			peer.signal(signal)
 		})
-
 		connectionRef.current = peer
 	}
 
@@ -76,7 +81,7 @@ export default function Video(props) {
 			stream: stream
 		})
 		peer.on("signal", (data) => {
-			socket.emit("answerCall", { signal: data, to: caller })
+			socket.emit("answerCall", { signal: data, to: callersocketID })
 		})
 		peer.on("stream", (stream) => {
 			userVideo.current.srcObject = stream
@@ -88,10 +93,8 @@ export default function Video(props) {
 
 	const leaveCall = () => {
 		setCallEnded(true)
-		connectionRef.current.destroy()
-	}
-
-
+		connectionRef.current.destroy();
+ 	}
 
 
 	return (
@@ -114,17 +117,13 @@ export default function Video(props) {
 				<div className={styles.fields}>
 					<div className={styles.details}>
 						<div className={styles.inputs}>
-							<label for="name">Your Name</label>
-							<input type="text" name="name" id="filled-basic" value={name} onChange={(e) => setName(e.target.value)}></input>
+							<label htmlFor="name">Your Name</label>
+							<input type="text" name="name" id="filled-basic" value={name} readOnly></input>
 						</div>
-						<CopyToClipboard text={socketID}>
-							<Button variant="contained" color="primary" startIcon={<AssignmentIcon fontSize="large" />}>
-								Copy ID
-							</Button>
-						</CopyToClipboard>
+						 
 						<div className={styles.inputs}>
-							<label for="id">ID to Call</label>
-							<input type="text" name="id" id="filled-basic" value={idToCall} onChange={(e) => setIdToCall(e.target.value)} ></input>
+							<label htmlFor="id">ID to Call</label>
+							<input type="text" name="id" id="filled-basic" value={props.selectedUser.socketID} ></input>
 						</div>
 					</div>
 
@@ -137,18 +136,19 @@ export default function Video(props) {
 								End Call
 							</Button>
 						) : (
-							<IconButton color="primary" aria-label="call" onClick={() => callUser(idToCall)}>
-								<PhoneIcon fontSize="medium" />
+							<IconButton color="primary" aria-label="call" onClick={() => callUser(props.selectedUser.socketID)}>
+								<PhoneIcon fontSize="small" />
 							</IconButton>
 						)}
-						{idToCall}
+						{props.selectedUser.socketID}
 					</div>
 				</div>
 
 				<div className={styles.calls}>
 					{receivingCall && !callAccepted ? (
 						<div className="caller">
-							<h1 >{name} is calling...</h1>
+							<h1>{callerName} is calling...</h1>
+							<h1>{callersocketID} is calling...</h1>
 							<Button variant="contained" color="primary" onClick={answerCall}>
 								Answer
 							</Button>

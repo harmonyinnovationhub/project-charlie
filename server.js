@@ -23,8 +23,6 @@ io.use((socket, next) => {
   next();
 }); 
 
-
-
 // Socket IO connection
 io.on("connection", (socket) => {
 
@@ -57,8 +55,6 @@ io.on("connection", (socket) => {
   
 
 
-
- 
     socket.on("disconnect", () => {
       socket.broadcast.emit("callEnded")
     })

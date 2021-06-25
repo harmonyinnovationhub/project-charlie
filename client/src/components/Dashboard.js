@@ -23,11 +23,31 @@ const Dashboard = (props) => {
             users.push(user);
             updateUsers(users);
             console.log(users);
-        })
+        });
+
+        socket.on("connect", () => {
+            users.forEach((user) => {
+              if (user.self) {
+                user.connected = true;
+              }
+            });
+            updateUsers(users);
+          });
+          
+          socket.on("disconnect", () => {
+             users.forEach((user) => {
+              if (user.self) {
+                user.connected = false;
+              }
+            });
+            updateUsers(users);
+            console.log(users);
+          });
+          
     })
 
     const updateSelected = (user) => {
-        if (!user.self) {
+        if (!user.self ) {
             setSelected(true);
             user.selected = true;
             users.forEach((elem) => {
@@ -55,6 +75,8 @@ const Dashboard = (props) => {
             alert("Select a user")
         }
     }
+
+    
 
     return (
         (screen == 0) ? <Chat selectedUser={ selectedUser} /> :
