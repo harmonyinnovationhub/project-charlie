@@ -1,27 +1,23 @@
-import React, { useState, useEffect, useRef } from "react";
-import io from "socket.io-client";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import styles from '../scss/chat.module.scss'
+import socket from "../socket";
+import { SocketIDContext } from "../context/SocketIDContext";
 
 const Chat = (props) => {
   const [socketID, setSocketID] = useState();
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
-  const [name, setName] = useState("");
+ 
+  const {users, name, userID, updateUsers, updateName, updateUserID, updateSocketID} = useContext(SocketIDContext);
 
-  const socketRef = useRef();
 
   useEffect(() => {
-
-    setName(props.location.state.name);
-    
-    setSocketID(props.location.state.socketID);
-    
-    socketRef.current.on("message", (message) => {
+    socket.on("message", (message) => {
       console.log("here");
       receivedMessage(message);
     })
   }, []);
-
+  
   function receivedMessage(message) {
     setMessages(oldMsgs => [...oldMsgs, message]);
   }
@@ -33,7 +29,8 @@ const Chat = (props) => {
       id: socketID,
     };
     setMessage("");
-    socketRef.current.emit("send message", messageObject);
+    console.log(messageObject);
+    socket.emit("send message", messageObject);
   }
 
   function handleChange(e) {
