@@ -1,7 +1,6 @@
 import styles from '../scss/video.module.scss'
 import Peer from 'simple-peer';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
-import React, { useEffect, useRef, useState, useContext } from "react";
+ import React, { useEffect, useRef, useState, useContext } from "react";
 
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
@@ -26,12 +25,18 @@ export default function Video(props) {
 
 	const { users, name, userID, socketID, updateUsers, updateName, updateUserID, updateSocketID } = useContext(SocketIDContext);
 
-
 	useEffect(() => {
+		console.log(myVideo);
+		
 		navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
 			setStream(stream)
 			myVideo.current.srcObject = stream
 		})
+
+		if(props.answered) answerCall();
+
+
+//////////////Receivers Bagin
 
 		socket.on("callUser", (data) => {
 			setReceivingCall(true);
@@ -53,8 +58,8 @@ export default function Video(props) {
 			stream: stream
 		})
 		peer.on("signal", (data) => {
-			console.log(name);
-			console.log(socket.id);
+			
+			
 			socket.emit("callUser", {
 				userToCall: id,
 				signalData: data,
@@ -72,7 +77,11 @@ export default function Video(props) {
 		})
 		connectionRef.current = peer
 	}
+	//////////// Receiver Ends
 
+
+
+	//////////// Callers Begin
 	const answerCall = () => {
 		setCallAccepted(true)
 		const peer = new Peer({
@@ -95,7 +104,7 @@ export default function Video(props) {
 		setCallEnded(true)
 		connectionRef.current.destroy();
  	}
-
+/////////// Callers End
 
 	return (
 		<div className={styles.container}>
@@ -121,10 +130,7 @@ export default function Video(props) {
 							<input type="text" name="name" id="filled-basic" value={name} readOnly></input>
 						</div>
 						 
-						<div className={styles.inputs}>
-							<label htmlFor="id">ID to Call</label>
-							<input type="text" name="id" id="filled-basic" value={props.selectedUser.socketID} ></input>
-						</div>
+						 
 					</div>
 
 
@@ -136,25 +142,20 @@ export default function Video(props) {
 								End Call
 							</Button>
 						) : (
-							<IconButton color="primary" aria-label="call" onClick={() => callUser(props.selectedUser.socketID)}>
-								<PhoneIcon fontSize="small" />
-							</IconButton>
+							!props.answered ? 
+							<div>
+								<IconButton color="primary" aria-label="call" onClick={() => callUser(props.selectedUser.socketID)}>
+									<PhoneIcon fontSize="small" />
+								</IconButton>
+								{props.selectedUser.socketID}
+							</div>
+							: null
+
 						)}
-						{props.selectedUser.socketID}
 					</div>
 				</div>
 
-				<div className={styles.calls}>
-					{receivingCall && !callAccepted ? (
-						<div className="caller">
-							<h1>{callerName} is calling...</h1>
-							<h1>{callersocketID} is calling...</h1>
-							<Button variant="contained" color="primary" onClick={answerCall}>
-								Answer
-							</Button>
-						</div>
-					) : null}
-				</div>
+				
 			</main>
 
 			<footer className={styles.footer}>

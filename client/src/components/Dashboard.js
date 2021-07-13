@@ -5,6 +5,9 @@ import { SocketIDContext } from "../context/SocketIDContext";
 import Chat from "./Chat";
 import Video from "./Video";
 
+import Button from "@material-ui/core/Button";
+
+
 const Dashboard = (props) => {
 
     // Getting Context State
@@ -13,7 +16,11 @@ const Dashboard = (props) => {
     const [selected, setSelected] = useState(false);
     const [selectedUser, setSelectedUser] = useState();
     const [screen, setScreen] = useState();
-
+	const [callerName, setCallerName] = useState("")
+	const [receivingCall, setReceivingCall] = useState(false)
+	const [callAccepted, setCallAccepted] = useState(false)
+	const [answered, setAnswered] = useState(false)
+    const [data, setData] = useState();
 
 
     useEffect(() => {
@@ -25,7 +32,13 @@ const Dashboard = (props) => {
             console.log(users);
         });
 
-        socket.on("connect", () => {
+        socket.on("ringUser", (data) => {
+             setCallerName(data.name);
+             setData(data);
+             setReceivingCall(true);
+           });
+
+          socket.on("connect", () => {
             users.forEach((user) => {
               if (user.self) {
                 user.connected = true;
@@ -43,6 +56,7 @@ const Dashboard = (props) => {
             updateUsers(users);
             console.log(users);
           });
+          
           
     })
 
@@ -79,7 +93,9 @@ const Dashboard = (props) => {
     
 
     return (
-        (screen == 0) ? <Chat selectedUser={ selectedUser} /> :
+         answered ? <Video answered = {answered} data = {data}  />
+            :
+            (screen == 0) ? <Chat selectedUser={ selectedUser} /> :
             (screen == 1) ? <Video  selectedUser={ selectedUser}/> :
                 <div className={styles.dashboard}>
                     <div className={styles.container}>
@@ -102,9 +118,28 @@ const Dashboard = (props) => {
                                 <p><button onClick={() => loadScreen(1)} > Video Call </button></p>
                             </ul>
                         </div>
+                        
+
+                        <div className={styles.calls}>
+                            {receivingCall && !callAccepted ? (
+                                <div className="caller">
+                                    <h1>{callerName} is calling...</h1>
+                                     <Button variant="contained" color="primary" onClick={()=> setAnswered(true)}>
+                                        Answer
+                                    </Button>
+                                </div>
+                            ) : null}
+                        </div>
+
+                        
+                        
                     </div>
                 </div>
-    )
+   
+   
+
+        
+   )
 
 };
 
